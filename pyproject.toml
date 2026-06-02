@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lnq-segmenter"
+version = "0.1.0"
+description = "Lymph node segmentation models — CLI + Python API. Downloads pre-trained nnU-Net weights from GitHub Releases and runs predict."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "CC BY 4.0" }
+authors = [{ name = "Steve Pieper", email = "pieper@isomics.com" }]
+keywords = ["medical-imaging", "nnunet", "lymph-node", "segmentation", "ct"]
+classifiers = [
+  "Intended Audience :: Healthcare Industry",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+  "Topic :: Scientific/Engineering :: Image Recognition",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+dependencies = ["nnunetv2>=2.6", "torch>=2.0", "SimpleITK>=2.3"]
+
+[project.scripts]
+lnq-segmenter = "lnq_segmenter.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/pieper/lnq-segmenter"
+Issues   = "https://github.com/pieper/lnq-segmenter/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+lnq_segmenter = ["_registry.json"]

@@ -1,0 +1,35 @@
+{
+  "schema": "lnq-segmenter-registry/1",
+  "models": [
+    {
+      "name": "inguinal-v1",
+      "display_name": "LNQ-inguinal v1",
+      "version": "1.0.0",
+      "license": "CC BY 4.0",
+      "task": "lymph_node_segmentation",
+      "anatomy": "inguinal",
+      "modality": "CT",
+      "trainer_class": "nnUNetTrainer",
+      "plans_identifier": "nnUNetResEncUNetMPlans",
+      "configuration": "3d_fullres",
+      "plans_subdir": "nnUNetTrainer__nnUNetResEncUNetMPlans__3d_fullres",
+      "folds": [0, 1, 2, 3],
+      "label_map": { "1": "lymph_node" },
+      "weights_url_template": "https://github.com/pieper/lnq-segmenter/releases/download/{name}-{version}/{filename}",
+      "weights_assets": [
+        { "role": "meta",   "filename": "inguinal-v1-1.0.0-meta.zip",  "sha256": "381d89b722af47a0160a500f8963dfdd8bb3237289f7ef3a1b045748f2527747", "size_bytes": 23273 },
+        { "role": "fold_0", "filename": "inguinal-v1-1.0.0-fold0.zip", "sha256": "a226bb27e498e35529aba275885b6ad190c8a828ce03268c6213674bef9daeeb", "size_bytes": 818818465 },
+        { "role": "fold_1", "filename": "inguinal-v1-1.0.0-fold1.zip", "sha256": "9769fc582eee9a920b50e28de9bf223ef6b4aa5772cab19698da714ce097c862", "size_bytes": 818815969 },
+        { "role": "fold_2", "filename": "inguinal-v1-1.0.0-fold2.zip", "sha256": "7ba4ed96850a0e87a503c858da8cc28503dcbd82da222340c5f9289d5a7c8dd2", "size_bytes": 818816673 },
+        { "role": "fold_3", "filename": "inguinal-v1-1.0.0-fold3.zip", "sha256": "336907e781de59aa701e33a1c0af2284785bf120ab76a08ffc016a1f8e1076d4", "size_bytes": 818818849 }
+      ],
+      "training_provenance": {
+        "model_generation_id": "modelgeneration:ce6cf698-f0eb-42e1-bf48-4bc077b175e8",
+        "chronicle_url": "https://lnq-chronicle.isomics.dev",
+        "training_set_size": 20,
+        "training_finished_at": "2026-05-31T19:22:51Z"
+      },
+      "recommended_use": "Pelvic/inguinal CT lymph-node candidate detection. Not for diagnostic use."
+    }
+  ]
+}

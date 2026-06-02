@@ -1,0 +1,4 @@
+# lnq-segmenter runtime requirements. Match pyproject.toml's dependencies.
+nnunetv2>=2.6
+torch>=2.0
+SimpleITK>=2.3
