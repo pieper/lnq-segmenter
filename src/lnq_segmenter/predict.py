@@ -7,17 +7,20 @@ from . import registry, download as _download, cache as _cache
 
 
 def predict(name, input_path, output_path, version=None, folds=None,
-            device="cuda", auto_download=True):
+            device="cuda", auto_download=True, progress_callback=None):
     """Run a model from the registry on `input_path`, write SEG to `output_path`.
 
-    name           registry name (e.g. 'inguinal-v1')
-    input_path     CT volume readable by SimpleITK (.nrrd, .nii.gz, ...)
-    output_path    where to write the SEG (same extension as input recommended)
-    version        registry version, or None for latest
-    folds          subset of ints; defaults to all folds in the registry entry
-    device         'cuda' | 'cpu' | 'mps'
-    auto_download  if True, fetch missing weights; if False and bundle isn't
-                   cached, raise FileNotFoundError instead.
+    name              registry name (e.g. 'inguinal-v1')
+    input_path        CT volume readable by SimpleITK (.nrrd, .nii.gz, ...)
+    output_path       where to write the SEG (same extension as input recommended)
+    version           registry version, or None for latest
+    folds             subset of ints; defaults to all folds in the registry entry
+    device            'cuda' | 'cpu' | 'mps'
+    auto_download     if True, fetch missing weights; if False and bundle isn't
+                      cached, raise FileNotFoundError instead.
+    progress_callback receives structured events ({"event": "predict_start", ...},
+                      {"event": "predict_done", "output": ...}, plus all download
+                      events when fetching weights).
     """
     entry = registry.get_model(name, version)
     if not _cache.is_complete(entry["name"], entry["version"], entry):
@@ -25,7 +28,7 @@ def predict(name, input_path, output_path, version=None, folds=None,
             raise FileNotFoundError(
                 f"weights for {entry['name']}@{entry['version']} not cached; "
                 f"run `lnq-segmenter download {entry['name']}` first")
-        bundle = _download.download(entry)
+        bundle = _download.download(entry, progress_callback=progress_callback)
     else:
         bundle = _cache.bundle_dir(entry["name"], entry["version"])
 
@@ -51,6 +54,11 @@ def predict(name, input_path, output_path, version=None, folds=None,
     # single-channel, so each item is a 1-element list.
     out_dir = os.path.dirname(os.path.abspath(output_path)) or "."
     os.makedirs(out_dir, exist_ok=True)
+    if progress_callback is not None:
+        progress_callback({"event": "predict_start",
+                           "model": f"{entry['name']}@{entry['version']}",
+                           "input": input_path, "output": output_path,
+                           "folds": list(use_folds), "device": device})
     predictor.predict_from_files(
         [[input_path]],
         [output_path],
@@ -59,4 +67,6 @@ def predict(name, input_path, output_path, version=None, folds=None,
         num_processes_preprocessing=2,
         num_processes_segmentation_export=2,
     )
+    if progress_callback is not None:
+        progress_callback({"event": "predict_done", "output": output_path})
     return output_path

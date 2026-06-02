@@ -1,4 +1,10 @@
-"""lnq-segmenter CLI: list / info / download / predict."""
+"""lnq-segmenter CLI: list / info / download / predict.
+
+The download and predict subcommands accept `--json-progress`, which makes
+them emit one JSON event per line to stderr prefixed with `lnq>`. Parsable
+from a GUI subprocess wrapper (e.g. the LymphNodeQuantifier Slicer module).
+Lines that don't start with `lnq>` are not events — pass them through to a
+log view."""
 from __future__ import annotations
 
 import argparse
@@ -7,6 +13,15 @@ import os
 import sys
 
 from . import registry, download as _download, cache as _cache, __version__
+
+JSON_PROGRESS_PREFIX = "lnq>"
+
+
+def _json_progress_callback(event):
+    """Write one event per line on stderr, prefixed for safe identification
+    against any other output (e.g. nnUNetPredictor's tqdm)."""
+    sys.stderr.write(f"{JSON_PROGRESS_PREFIX} {json.dumps(event)}\n")
+    sys.stderr.flush()
 
 
 def _resolve_entry(spec):
@@ -68,7 +83,9 @@ def cmd_info(args):
 
 def cmd_download(args):
     entry = _resolve_entry(args.spec)
-    bundle = _download.download(entry, progress=not args.quiet)
+    cb = _json_progress_callback if args.json_progress else None
+    bundle = _download.download(entry, progress=not args.quiet,
+                                progress_callback=cb)
     print(bundle)
     return 0
 
@@ -93,14 +110,16 @@ def _prompt_for_download(entry):
 def cmd_predict(args):
     from . import predict as _predict
     entry = _resolve_entry(args.spec)
-    if not args.yes and not _prompt_for_download(entry):
+    if not args.yes and not args.json_progress and not _prompt_for_download(entry):
         print("aborted.", file=sys.stderr)
         return 1
+    cb = _json_progress_callback if args.json_progress else None
     out = _predict.predict(
         entry["name"], args.input, args.output,
         version=entry["version"],
         folds=args.folds,
         device=args.device,
+        progress_callback=cb,
     )
     print(out)
     return 0
@@ -126,6 +145,8 @@ def build_parser():
     p = sub.add_parser("download", help="Fetch + verify all model assets.")
     p.add_argument("spec", help="name[@version]")
     p.add_argument("--quiet", "-q", action="store_true")
+    p.add_argument("--json-progress", action="store_true",
+                   help="Emit machine-readable progress events on stderr.")
     p.set_defaults(func=cmd_download)
 
     p = sub.add_parser("predict",
@@ -139,6 +160,9 @@ def build_parser():
                    choices=("cuda", "cpu", "mps"))
     p.add_argument("--yes", "-y", action="store_true",
                    help="Skip the download-on-first-run prompt.")
+    p.add_argument("--json-progress", action="store_true",
+                   help="Emit machine-readable progress events on stderr. "
+                        "Implies --yes.")
     p.set_defaults(func=cmd_predict)
 
     return ap

@@ -3,13 +3,18 @@
 Assets are zipped subsets of the canonical nnU-Net layout (one fold each,
 plus a small meta.zip). Each asset is downloaded to a temp file, sha256-
 verified, then unzipped into the bundle dir. Re-running is idempotent —
-assets that match the expected sha are skipped."""
+assets that match the expected sha are skipped.
+
+Progress reporting: pass a `progress_callback(event_dict)` to receive
+structured events suitable for parsing from a GUI subprocess wrapper.
+When no callback is given, prints a TTY-aware human progress bar to stderr."""
 from __future__ import annotations
 
 import hashlib
 import os
 import sys
 import tempfile
+import time
 import urllib.request
 import zipfile
 
@@ -30,46 +35,64 @@ def _resolve_url(entry, asset):
         filename=asset["filename"])
 
 
-def _fetch(url, dst_path, expected_sha256, expected_size, progress=True):
+def _fetch(url, dst_path, expected_sha256, expected_size, asset_role,
+           progress=True, progress_callback=None):
     """Download `url` to `dst_path` (atomic via temp file), verify sha256.
-    Progress bar only when stderr is a TTY — non-interactive callers get a
-    single completion line per asset instead."""
+
+    Emits structured events to `progress_callback` if given (one call per
+    ~50ms tick during the transfer). Otherwise, when stderr is a TTY, prints
+    a human progress bar; on non-TTY, a single completion line."""
     tmp_dir = os.path.dirname(dst_path)
     os.makedirs(tmp_dir, exist_ok=True)
     fd, tmp = tempfile.mkstemp(prefix=".dl-", dir=tmp_dir)
     os.close(fd)
-    show_bar = progress and sys.stderr.isatty()
+    show_bar = progress and progress_callback is None and sys.stderr.isatty()
+    filename = os.path.basename(dst_path)
+    if progress_callback is not None:
+        progress_callback({"event": "download_start", "asset": asset_role,
+                           "filename": filename,
+                           "bytes_total": expected_size, "url": url})
     try:
         with urllib.request.urlopen(url, timeout=60) as resp, \
                 open(tmp, "wb") as out:
             total = expected_size or 0
             done = 0
             chunk = 1 << 20
+            last_emit = 0.0
             while True:
                 buf = resp.read(chunk)
                 if not buf:
                     break
                 out.write(buf)
                 done += len(buf)
+                now = time.monotonic()
                 if show_bar and total:
                     pct = 100.0 * done / total
                     sys.stderr.write(
-                        f"\r  {os.path.basename(dst_path):44s}  "
+                        f"\r  {filename:44s}  "
                         f"{done / 1e6:7.1f} / {total / 1e6:7.1f} MB  "
                         f"{pct:5.1f}%")
                     sys.stderr.flush()
+                elif progress_callback is not None and (now - last_emit) > 0.1:
+                    last_emit = now
+                    progress_callback({"event": "download_progress",
+                                       "asset": asset_role,
+                                       "bytes_done": done,
+                                       "bytes_total": total})
         if show_bar and total:
             sys.stderr.write("\n")
-        elif progress:
+        elif progress and progress_callback is None:
             sys.stderr.write(
-                f"  fetched {os.path.basename(dst_path)} "
-                f"({done / 1e6:.1f} MB)\n")
+                f"  fetched {filename} ({done / 1e6:.1f} MB)\n")
         actual = _sha256_file(tmp)
         if actual != expected_sha256:
             raise RuntimeError(
                 f"sha256 mismatch for {url}: expected {expected_sha256}, "
                 f"got {actual}")
         os.replace(tmp, dst_path)
+        if progress_callback is not None:
+            progress_callback({"event": "download_done", "asset": asset_role,
+                               "filename": filename, "bytes_total": done})
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
@@ -96,9 +119,18 @@ def _unzip(zip_path, dst_dir):
                     dst.write(buf)
 
 
-def download(entry, progress=True):
+def download(entry, progress=True, progress_callback=None):
     """Ensure every asset listed in `entry['weights_assets']` is present in
-    the bundle dir. Returns the bundle dir path."""
+    the bundle dir. Returns the bundle dir path.
+
+    progress_callback, if given, receives structured events:
+      {"event": "bundle_already_cached", "bundle": "..."}
+      {"event": "download_start",    "asset": role, ...}
+      {"event": "download_progress", "asset": role, "bytes_done": n, ...}
+      {"event": "download_done",     "asset": role, ...}
+      {"event": "unzip_start",       "asset": role, "filename": ...}
+      {"event": "unzip_done",        "asset": role}
+      {"event": "bundle_ready",      "bundle": "..."}"""
     name, version = entry["name"], entry["version"]
     bundle = _cache.bundle_dir(name, version)
     os.makedirs(bundle, exist_ok=True)
@@ -107,7 +139,10 @@ def download(entry, progress=True):
 
     expected = _cache.expected_files(entry)
     if all(os.path.isfile(os.path.join(bundle, f)) for f in expected):
-        if progress:
+        if progress_callback is not None:
+            progress_callback({"event": "bundle_already_cached",
+                               "bundle": bundle})
+        elif progress:
             sys.stderr.write(f"[lnq-segmenter] {name}@{version} already cached\n")
         return bundle
 
@@ -120,11 +155,21 @@ def download(entry, progress=True):
                 need = False
         if need:
             url = _resolve_url(entry, asset)
-            if progress:
+            if progress_callback is None and progress:
                 sys.stderr.write(f"[lnq-segmenter] fetch {url}\n")
             _fetch(url, zip_path, asset["sha256"], asset["size_bytes"],
-                   progress=progress)
-        if progress:
+                   asset_role=asset["role"],
+                   progress=progress, progress_callback=progress_callback)
+        if progress_callback is not None:
+            progress_callback({"event": "unzip_start",
+                               "asset": asset["role"],
+                               "filename": asset["filename"]})
+        elif progress:
             sys.stderr.write(f"[lnq-segmenter] unzip {asset['filename']}\n")
         _unzip(zip_path, bundle)
+        if progress_callback is not None:
+            progress_callback({"event": "unzip_done", "asset": asset["role"]})
+
+    if progress_callback is not None:
+        progress_callback({"event": "bundle_ready", "bundle": bundle})
     return bundle
