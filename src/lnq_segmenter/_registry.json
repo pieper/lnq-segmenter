@@ -13,15 +13,55 @@
       "plans_identifier": "nnUNetResEncUNetMPlans",
       "configuration": "3d_fullres",
       "plans_subdir": "nnUNetTrainer__nnUNetResEncUNetMPlans__3d_fullres",
-      "folds": [0, 1, 2, 3],
-      "label_map": { "1": "lymph_node" },
+      "folds": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "label_map": {
+        "1": "lymph_node"
+      },
+      "segment_name": "Inguinal LNs",
+      "color": [
+        240,
+        220,
+        60
+      ],
+      "snomed_code": "39937001",
+      "snomed_term": "Inguinal lymph node",
       "weights_url_template": "https://github.com/pieper/lnq-segmenter/releases/download/{name}-{version}/{filename}",
       "weights_assets": [
-        { "role": "meta",   "filename": "inguinal-v1-1.0.0-meta.zip",  "sha256": "381d89b722af47a0160a500f8963dfdd8bb3237289f7ef3a1b045748f2527747", "size_bytes": 23273 },
-        { "role": "fold_0", "filename": "inguinal-v1-1.0.0-fold0.zip", "sha256": "a226bb27e498e35529aba275885b6ad190c8a828ce03268c6213674bef9daeeb", "size_bytes": 818818465 },
-        { "role": "fold_1", "filename": "inguinal-v1-1.0.0-fold1.zip", "sha256": "9769fc582eee9a920b50e28de9bf223ef6b4aa5772cab19698da714ce097c862", "size_bytes": 818815969 },
-        { "role": "fold_2", "filename": "inguinal-v1-1.0.0-fold2.zip", "sha256": "7ba4ed96850a0e87a503c858da8cc28503dcbd82da222340c5f9289d5a7c8dd2", "size_bytes": 818816673 },
-        { "role": "fold_3", "filename": "inguinal-v1-1.0.0-fold3.zip", "sha256": "336907e781de59aa701e33a1c0af2284785bf120ab76a08ffc016a1f8e1076d4", "size_bytes": 818818849 }
+        {
+          "role": "meta",
+          "filename": "inguinal-v1-1.0.0-meta.zip",
+          "sha256": "381d89b722af47a0160a500f8963dfdd8bb3237289f7ef3a1b045748f2527747",
+          "size_bytes": 23273
+        },
+        {
+          "role": "fold_0",
+          "filename": "inguinal-v1-1.0.0-fold0.zip",
+          "sha256": "a226bb27e498e35529aba275885b6ad190c8a828ce03268c6213674bef9daeeb",
+          "size_bytes": 818818465
+        },
+        {
+          "role": "fold_1",
+          "filename": "inguinal-v1-1.0.0-fold1.zip",
+          "sha256": "9769fc582eee9a920b50e28de9bf223ef6b4aa5772cab19698da714ce097c862",
+          "size_bytes": 818815969
+        },
+        {
+          "role": "fold_2",
+          "filename": "inguinal-v1-1.0.0-fold2.zip",
+          "sha256": "7ba4ed96850a0e87a503c858da8cc28503dcbd82da222340c5f9289d5a7c8dd2",
+          "size_bytes": 818816673
+        },
+        {
+          "role": "fold_3",
+          "filename": "inguinal-v1-1.0.0-fold3.zip",
+          "sha256": "336907e781de59aa701e33a1c0af2284785bf120ab76a08ffc016a1f8e1076d4",
+          "size_bytes": 818818849
+        }
       ],
       "training_provenance": {
         "model_generation_id": "modelgeneration:ce6cf698-f0eb-42e1-bf48-4bc077b175e8",
@@ -30,6 +70,170 @@
         "training_finished_at": "2026-05-31T19:22:51Z"
       },
       "recommended_use": "Pelvic/inguinal CT lymph-node candidate detection. Not for diagnostic use."
+    },
+    {
+      "name": "abdominopelvic-v1",
+      "display_name": "LNQ-abdominopelvic v1",
+      "version": "1.0.0",
+      "license": "CC BY-NC 4.0",
+      "task": "lymph_node_segmentation",
+      "anatomy": "abdominopelvic",
+      "modality": "CT",
+      "trainer_class": "",
+      "plans_identifier": "",
+      "configuration": "",
+      "plans_subdir": "abdominopelvic-v1",
+      "folds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "label_map": {
+        "1": "lymph_node"
+      },
+      "segment_name": "Abdominopelvic LNs",
+      "color": [
+        120,
+        220,
+        120
+      ],
+      "snomed_code": "65150001",
+      "snomed_term": "Intra-abdominal lymph node",
+      "weights_url_template": "https://github.com/pieper/lnq-segmenter/releases/download/{name}-{version}/{filename}",
+      "weights_assets": [
+        {
+          "role": "meta",
+          "filename": "abdominopelvic-v1-1.0.0-meta.zip",
+          "sha256": "38ae5152a9d4c48e54beacb653f7b4ddca194368b13d5ea3152ee0320631bb77",
+          "size_bytes": 33944
+        },
+        {
+          "role": "fold_0",
+          "filename": "abdominopelvic-v1-1.0.0-fold0.zip",
+          "sha256": "be360c1c3e804bbfd1f9b8bc8932ee7669bd2d673e04560c0f6a40775af94693",
+          "size_bytes": 818817953
+        },
+        {
+          "role": "fold_1",
+          "filename": "abdominopelvic-v1-1.0.0-fold1.zip",
+          "sha256": "56eb8d62f23987202e4bf4dea6ab864877215938e3572a8714793b4fbbb1e42a",
+          "size_bytes": 818816993
+        },
+        {
+          "role": "fold_2",
+          "filename": "abdominopelvic-v1-1.0.0-fold2.zip",
+          "sha256": "265d621e0e7a6a57e82e7ebbe307f912eace7a805350418425cbd3672f955f72",
+          "size_bytes": 818818401
+        },
+        {
+          "role": "fold_3",
+          "filename": "abdominopelvic-v1-1.0.0-fold3.zip",
+          "sha256": "3b81deb5671a7ad71e8096efe1ee79342fff18c5877b09578b291ee7f05eee18",
+          "size_bytes": 818818145
+        },
+        {
+          "role": "fold_4",
+          "filename": "abdominopelvic-v1-1.0.0-fold4.zip",
+          "sha256": "b2b7e757cbc48d2b46fe57fc3b1ce985694031a227543d5092bee0bb1df47e44",
+          "size_bytes": 818817249
+        }
+      ],
+      "training_provenance": {
+        "model_generation_id": "modelgeneration:a3aab2fd-7c59-48fc-b596-53a7d2065011",
+        "chronicle_url": "https://lnq-chronicle.isomics.dev",
+        "training_set_size": 69,
+        "training_finished_at": "2026-05-31T00:00:00Z"
+      },
+      "publish_provenance": {
+        "published_at": "2026-06-05T15:28:34Z",
+        "published_by": "hive.local",
+        "source_plans_dir_at_publish": "/tmp/lnq-publish-src/abdominopelvic-v1"
+      },
+      "recommended_use": "Abdominal/pelvic CT lymph-node candidate detection (retro6 training). Not for diagnostic use."
+    },
+    {
+      "name": "mediastinal-v1",
+      "display_name": "LNQ-mediastinal v1",
+      "version": "1.0.0",
+      "license": "CC BY-NC 4.0",
+      "task": "lymph_node_segmentation",
+      "anatomy": "mediastinal",
+      "modality": "CT",
+      "trainer_class": "",
+      "plans_identifier": "",
+      "configuration": "",
+      "plans_subdir": "mediastinal-v1",
+      "folds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "label_map": {
+        "1": "lymph_node"
+      },
+      "segment_name": "Mediastinal LNs",
+      "color": [
+        200,
+        100,
+        230
+      ],
+      "snomed_code": "91186003",
+      "snomed_term": "Mediastinal lymph node",
+      "weights_url_template": "https://github.com/pieper/lnq-segmenter/releases/download/{name}-{version}/{filename}",
+      "weights_assets": [
+        {
+          "role": "meta",
+          "filename": "mediastinal-v1-1.0.0-meta.zip",
+          "sha256": "3fd3ae12468c79f26cc65edce6b1a8f141d6dfaff92dbf487247c278e422fa3e",
+          "size_bytes": 43276
+        },
+        {
+          "role": "fold_0",
+          "filename": "mediastinal-v1-1.0.0-fold0.zip",
+          "sha256": "aaa90de915e03529b835e0674ab7d5169e510fbce785f989aa3f4b64d9c9c41b",
+          "size_bytes": 815538907
+        },
+        {
+          "role": "fold_1",
+          "filename": "mediastinal-v1-1.0.0-fold1.zip",
+          "sha256": "ae1782abb066113b571863b4d33dbfbb20b6eee65065bbfb1f311c713e5d70da",
+          "size_bytes": 815538907
+        },
+        {
+          "role": "fold_2",
+          "filename": "mediastinal-v1-1.0.0-fold2.zip",
+          "sha256": "844a18e070108062559d0fd6fe12d00540df540332fb3068eab335b4252cfc4c",
+          "size_bytes": 815538907
+        },
+        {
+          "role": "fold_3",
+          "filename": "mediastinal-v1-1.0.0-fold3.zip",
+          "sha256": "5c5643c5f7a36e72ed396e0157256f7b5610b5db59383f0bcba907777bd49213",
+          "size_bytes": 815538907
+        },
+        {
+          "role": "fold_4",
+          "filename": "mediastinal-v1-1.0.0-fold4.zip",
+          "sha256": "f7b48a9848af8ec37527098d34230b759e25293874feef075080ff1cf47530b1",
+          "size_bytes": 815538971
+        }
+      ],
+      "training_provenance": {
+        "model_generation_id": "modelgeneration:bbeafe06-7c13-46d8-b6dd-8c742c788623",
+        "chronicle_url": "https://lnq-chronicle.isomics.dev",
+        "training_set_size": 120,
+        "training_finished_at": "2026-06-05T13:30:34Z"
+      },
+      "publish_provenance": {
+        "published_at": "2026-06-05T15:28:09Z",
+        "published_by": "hive.local",
+        "source_plans_dir_at_publish": "/tmp/lnq-publish-src/mediastinal-v1"
+      },
+      "recommended_use": "Mediastinal CT lymph-node candidate detection. Not for diagnostic use."
     }
   ]
 }

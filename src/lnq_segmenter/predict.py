@@ -2,8 +2,26 @@
 from __future__ import annotations
 
 import os
+import shutil
 
 from . import registry, download as _download, cache as _cache
+
+
+def _ensure_nnunet_layout(bundle, plans_dir):
+    """nnUNetPredictor.initialize_from_trained_model_folder reads dataset.json
+    and plans.json from the directory it is handed, but publish-model.py
+    stages those at bundle root (alongside, not inside, the plans_subdir).
+    Plant them where nnU-Net expects without re-minting the bundle."""
+    for meta in ("dataset.json", "plans.json"):
+        src = os.path.join(bundle, meta)
+        dst = os.path.join(plans_dir, meta)
+        if not os.path.isfile(src) or os.path.exists(dst):
+            continue
+        os.makedirs(plans_dir, exist_ok=True)
+        try:
+            os.symlink(os.path.abspath(src), dst)
+        except OSError:
+            shutil.copy2(src, dst)
 
 
 def predict(name, input_path, output_path, version=None, folds=None,
@@ -37,6 +55,7 @@ def predict(name, input_path, output_path, version=None, folds=None,
 
     use_folds = tuple(folds) if folds is not None else tuple(entry["folds"])
     plans_dir = os.path.join(bundle, entry["plans_subdir"])
+    _ensure_nnunet_layout(bundle, plans_dir)
 
     predictor = nnUNetPredictor(
         tile_step_size=0.5,
