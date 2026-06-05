@@ -78,14 +78,27 @@ def predict(name, input_path, output_path, version=None, folds=None,
                            "model": f"{entry['name']}@{entry['version']}",
                            "input": input_path, "output": output_path,
                            "folds": list(use_folds), "device": device})
+    # nnUNetPredictor.predict_from_files appends dataset.json's `file_ending`
+    # (e.g. ".nrrd") to whatever filename it is given. Passing "out.nrrd"
+    # would land as "out.nrrd.nrrd". Strip the trailing extension before the
+    # call so nnU-Net writes directly to `output_path`.
+    file_ending = (predictor.dataset_json or {}).get("file_ending", ".nrrd")
+    nnunet_out = output_path
+    if nnunet_out.lower().endswith(file_ending.lower()):
+        nnunet_out = nnunet_out[: -len(file_ending)]
     predictor.predict_from_files(
         [[input_path]],
-        [output_path],
+        [nnunet_out],
         save_probabilities=False,
         overwrite=True,
         num_processes_preprocessing=2,
         num_processes_segmentation_export=2,
     )
+    # In case the layout above ever changes, normalize so callers always find
+    # the segmentation at `output_path` exactly.
+    produced = nnunet_out + file_ending
+    if produced != output_path and os.path.isfile(produced):
+        os.replace(produced, output_path)
     if progress_callback is not None:
         progress_callback({"event": "predict_done", "output": output_path})
     return output_path
