@@ -154,6 +154,88 @@
       "recommended_use": "Abdominal/pelvic CT lymph-node candidate detection (retro6 training). Not for diagnostic use."
     },
     {
+      "name": "axillary-v1",
+      "display_name": "LNQ-axillary v1",
+      "version": "1.0.0",
+      "license": "CC BY-NC 4.0",
+      "task": "lymph_node_segmentation",
+      "anatomy": "axillary",
+      "modality": "CT",
+      "trainer_class": "",
+      "plans_identifier": "",
+      "configuration": "",
+      "plans_subdir": "axillary-v1",
+      "folds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "label_map": {
+        "1": "lymph_node"
+      },
+      "segment_name": "Axillary LNs",
+      "color": [
+        255,
+        150,
+        100
+      ],
+      "snomed_code": "68171009",
+      "snomed_term": "Axillary lymph node group",
+      "weights_url_template": "https://github.com/pieper/lnq-segmenter/releases/download/{name}-{version}/{filename}",
+      "weights_assets": [
+        {
+          "role": "meta",
+          "filename": "axillary-v1-1.0.0-meta.zip",
+          "sha256": "69a121e088b9643a7194e4a25bf905848b65f00fe389943ff250afb129afb011",
+          "size_bytes": 22792
+        },
+        {
+          "role": "fold_0",
+          "filename": "axillary-v1-1.0.0-fold0.zip",
+          "sha256": "1d33b5a0824c028b7f8888225f52f6e85d3786d885699eb774e973517c4eedf9",
+          "size_bytes": 815538965
+        },
+        {
+          "role": "fold_1",
+          "filename": "axillary-v1-1.0.0-fold1.zip",
+          "sha256": "fd11632c296c34e9e6f93ba0aa1cf09be35873c1ff5ff6bc08e699e8b4cd1a67",
+          "size_bytes": 815539413
+        },
+        {
+          "role": "fold_2",
+          "filename": "axillary-v1-1.0.0-fold2.zip",
+          "sha256": "c090643a1d453b91d81aca1b188dd0a99606c09e890556e54b588afe84572459",
+          "size_bytes": 815538965
+        },
+        {
+          "role": "fold_3",
+          "filename": "axillary-v1-1.0.0-fold3.zip",
+          "sha256": "7b62d1f226f429ef647c9098a9545dd90c22c0fb34dfac71796841612616c7bc",
+          "size_bytes": 815538965
+        },
+        {
+          "role": "fold_4",
+          "filename": "axillary-v1-1.0.0-fold4.zip",
+          "sha256": "2e1e80b274b8443a0f140b538e324ca6b6a4d465ec44298e20222933509ed726",
+          "size_bytes": 815539669
+        }
+      ],
+      "training_provenance": {
+        "model_generation_id": "modelgeneration:2d0bc60c-46a8-424c-b765-174915a9a86f",
+        "chronicle_url": "https://lnq-chronicle.isomics.dev",
+        "training_set_size": 20,
+        "training_finished_at": "2026-06-05T23:58:42Z"
+      },
+      "publish_provenance": {
+        "published_at": "2026-06-06T14:14:32Z",
+        "published_by": "hive.local",
+        "source_plans_dir_at_publish": "/tmp/lnq-publish-src/axillary-v1"
+      },
+      "recommended_use": "Axillary CT lymph-node candidate detection. Not for diagnostic use."
+    },
+    {
       "name": "mediastinal-v1",
       "display_name": "LNQ-mediastinal v1",
       "version": "1.0.0",
