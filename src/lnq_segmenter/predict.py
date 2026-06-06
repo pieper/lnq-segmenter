@@ -25,20 +25,26 @@ def _ensure_nnunet_layout(bundle, plans_dir):
 
 
 def predict(name, input_path, output_path, version=None, folds=None,
-            device="cuda", auto_download=True, progress_callback=None):
+            device="cuda", auto_download=True, progress_callback=None,
+            probability_output=None):
     """Run a model from the registry on `input_path`, write SEG to `output_path`.
 
-    name              registry name (e.g. 'inguinal-v1')
-    input_path        CT volume readable by SimpleITK (.nrrd, .nii.gz, ...)
-    output_path       where to write the SEG (same extension as input recommended)
-    version           registry version, or None for latest
-    folds             subset of ints; defaults to all folds in the registry entry
-    device            'cuda' | 'cpu' | 'mps'
-    auto_download     if True, fetch missing weights; if False and bundle isn't
-                      cached, raise FileNotFoundError instead.
-    progress_callback receives structured events ({"event": "predict_start", ...},
-                      {"event": "predict_done", "output": ...}, plus all download
-                      events when fetching weights).
+    name               registry name (e.g. 'inguinal-v1')
+    input_path         CT volume readable by SimpleITK (.nrrd, .nii.gz, ...)
+    output_path        where to write the SEG (same extension as input recommended)
+    version            registry version, or None for latest
+    folds              subset of ints; defaults to all folds in the registry entry
+    device             'cuda' | 'cpu' | 'mps'
+    auto_download      if True, fetch missing weights; if False and bundle isn't
+                       cached, raise FileNotFoundError instead.
+    progress_callback  receives structured events ({"event": "predict_start", ...},
+                       {"event": "predict_done", "output": ...}, plus all download
+                       events when fetching weights).
+    probability_output if set, also write the ensemble-averaged foreground
+                       softmax map (binary, single-channel float32) to this
+                       path as a NRRD/NIfTI sharing the input's geometry.
+                       Useful for thresholding studies and as the seed for
+                       reviewer paint tools (see docs/review-tab.md).
     """
     entry = registry.get_model(name, version)
     if not _cache.is_complete(entry["name"], entry["version"], entry):
@@ -86,10 +92,11 @@ def predict(name, input_path, output_path, version=None, folds=None,
     nnunet_out = output_path
     if nnunet_out.lower().endswith(file_ending.lower()):
         nnunet_out = nnunet_out[: -len(file_ending)]
+    save_probs = probability_output is not None
     predictor.predict_from_files(
         [[input_path]],
         [nnunet_out],
-        save_probabilities=False,
+        save_probabilities=save_probs,
         overwrite=True,
         num_processes_preprocessing=2,
         num_processes_segmentation_export=2,
@@ -99,6 +106,55 @@ def predict(name, input_path, output_path, version=None, folds=None,
     produced = nnunet_out + file_ending
     if produced != output_path and os.path.isfile(produced):
         os.replace(produced, output_path)
+    if save_probs:
+        _write_probability_map(nnunet_out, input_path, probability_output,
+                                progress_callback=progress_callback)
     if progress_callback is not None:
-        progress_callback({"event": "predict_done", "output": output_path})
+        progress_callback({"event": "predict_done", "output": output_path,
+                           "probability_output": probability_output})
     return output_path
+
+
+def _write_probability_map(nnunet_out, input_path, probability_output,
+                            progress_callback=None):
+    """Convert nnU-Net's per-class `.npz` softmax dump into a single-channel
+    foreground-probability volume on the input's geometry.
+
+    nnU-Net writes a sibling `<nnunet_out>.npz` containing key "probabilities"
+    of shape (num_classes, Z, Y, X). For our 2-class LN models the foreground
+    class is channel 1; we extract it as float32 and write a NRRD/NIfTI that
+    Slicer can load directly as a vtkMRMLScalarVolumeNode."""
+    import numpy as np
+    import SimpleITK as sitk
+
+    probs_npz = nnunet_out + ".npz"
+    if not os.path.isfile(probs_npz):
+        # Belt-and-suspenders: nnU-Net may also leave a .pkl alongside; the
+        # missing-npz branch shouldn't normally trigger when save_probabilities
+        # was passed, so surface clearly.
+        raise RuntimeError(f"nnU-Net did not produce {probs_npz}; was "
+                            "save_probabilities=True?")
+    data = np.load(probs_npz)
+    probs = data["probabilities"]
+    fg = probs[1] if probs.shape[0] >= 2 else probs[0]
+    fg_img = sitk.GetImageFromArray(fg.astype("float32"))
+    # nnU-Net resamples to the model's training spacing internally, but the
+    # NPZ written here is the SEG-grid output (matching the SEG NRRD we
+    # just produced). Lift geometry from the input CT so the probability map
+    # loads on the same frame as the rest of the scene.
+    ref = sitk.ReadImage(input_path)
+    fg_img.CopyInformation(ref)
+    out_dir = os.path.dirname(os.path.abspath(probability_output)) or "."
+    os.makedirs(out_dir, exist_ok=True)
+    sitk.WriteImage(fg_img, probability_output, useCompression=True)
+    # nnU-Net's .npz is large; remove it once we've extracted what we need.
+    try:
+        os.remove(probs_npz)
+        pkl = nnunet_out + ".pkl"
+        if os.path.isfile(pkl):
+            os.remove(pkl)
+    except OSError:
+        pass
+    if progress_callback is not None:
+        progress_callback({"event": "probability_written",
+                           "output": probability_output})

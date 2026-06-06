@@ -1,5 +1,5 @@
 """lnq-segmenter — lymph node segmentation models from a curated nnU-Net registry."""
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 from .registry import list_models, get_model, latest_version
 from .cache import bundle_dir, cache_root

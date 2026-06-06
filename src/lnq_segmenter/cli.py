@@ -120,6 +120,7 @@ def cmd_predict(args):
         folds=args.folds,
         device=args.device,
         progress_callback=cb,
+        probability_output=args.probability_output,
     )
     print(out)
     return 0
@@ -156,6 +157,10 @@ def build_parser():
     p.add_argument("--output", "-o", required=True, help="Output SEG path.")
     p.add_argument("--folds", type=int, nargs="*", default=None,
                    help="Folds to use (default: all from registry).")
+    p.add_argument("--probability-output", default=None,
+                   help="Also write the ensemble-averaged foreground softmax "
+                        "as a single-channel float32 volume at this path. "
+                        "Same geometry as the input CT.")
     p.add_argument("--device", default="cuda",
                    choices=("cuda", "cpu", "mps"))
     p.add_argument("--yes", "-y", action="store_true",
