@@ -1,3 +1,6 @@
+**Unvalidate preliminary work, not for clinical use.  Contact pieper@isomics.com with any questions**
+
+
 # lnq-segmenter
 
 Lymph node segmentation models for CT, packaged as downloadable nnU-Net weights with a thin Python + CLI wrapper.
