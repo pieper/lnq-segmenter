@@ -1,4 +1,4 @@
-**Unvalidate preliminary work, not for clinical use.  Contact pieper@isomics.com with any questions**
+**Unvalidated preliminary work, not for clinical use.  Contact pieper@isomics.com with any questions**
 
 
 # lnq-segmenter
